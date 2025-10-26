@@ -1,6 +1,19 @@
+/**
+ * @file Service functions for filtering video data.
+ * @module services/filter.service
+ */
+
 import { Video } from '../schemas/video.schema';
 import { VideoFilters } from '../types/video.types';
 
+/**
+ * Filters videos by exact match on string properties.
+ * Currently supports 'creator' and 'language'.
+ * @function filterByExactMatch
+ * @param {Video[]} videos - The array of videos to filter.
+ * @param {Pick<VideoFilters, 'creator' | 'language'>} filters - The filter criteria.
+ * @returns {Video[]} The filtered array of videos.
+ */
 export const filterByExactMatch = (
   videos: Video[],
   filters: Pick<VideoFilters, 'creator' | 'language'>
@@ -19,6 +32,14 @@ export const filterByExactMatch = (
   return filteredVideos;
 };
 
+/**
+ * Filters videos by a numeric or date range.
+ * Supports 'minDuration', 'maxDuration', 'startDate', and 'endDate'.
+ * @function filterByRange
+ * @param {Video[]} videos - The array of videos to filter.
+ * @param {Pick<VideoFilters, 'minDuration' | 'maxDuration' | 'startDate' | 'endDate'>} filters - The filter criteria.
+ * @returns {Video[]} The filtered array of videos.
+ */
 export const filterByRange = (
   videos: Video[],
   filters: Pick<
@@ -50,6 +71,18 @@ export const filterByRange = (
   return filteredVideos;
 };
 
+/**
+ * Filters videos where a property matches any value in a given array.
+ * Currently supports 'targetAudience'.
+ * This implements an OR logic for the values within the array.
+ * @function filterByArray
+ * @param {Video[]} videos - The array of videos to filter.
+ * @param {Pick<VideoFilters, 'targetAudience'>} filters - The filter criteria.
+ * @returns {Video[]} The filtered array of videos.
+ * @example
+ * // Returns videos where targetAudience is either 'children' or 'teens'.
+ * filterByArray(videos, { targetAudience: ['children', 'teens'] });
+ */
 export const filterByArray = (
   videos: Video[],
   filters: Pick<VideoFilters, 'targetAudience'>
@@ -62,6 +95,14 @@ export const filterByArray = (
   );
 };
 
+/**
+ * Applies all available filters to an array of videos.
+ * This function acts as a central orchestrator for the modular filter functions.
+ * @function applyFilters
+ * @param {Video[]} videos - The array of videos to filter.
+ * @param {VideoFilters} filters - An object containing all possible filter criteria.
+ * @returns {Video[]} The final filtered array of videos.
+ */
 export const applyFilters = (
   videos: Video[],
   filters: VideoFilters
