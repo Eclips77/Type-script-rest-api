@@ -18,7 +18,10 @@ export const VideoUpdateSchema = VideoSchema.partial();
 export const VideoFilterSchema = z.object({
   creator: z.string().optional(),
   language: z.string().optional(),
-  targetAudience: z.array(z.string()).optional(),
+  targetAudience: z.preprocess(
+    (a) => (Array.isArray(a) ? a : [a]),
+    z.array(z.string())
+  ).optional(),
   minDuration: z.preprocess(
     (a) => parseInt(z.string().parse(a), 10),
     z.number().positive()
