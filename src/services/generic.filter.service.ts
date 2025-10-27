@@ -71,3 +71,35 @@ export const filterByArray = <T extends GenericObject>(
   }
   return data.filter((item) => values.includes(item[key]));
 };
+
+import Fuse from 'fuse.js';
+
+/**
+ * Performs a fuzzy search on an array of objects using Fuse.js.
+ * @template T
+ * @param {T[]} data - The array of objects to search.
+ * @param {(keyof T)[]} keys - The property keys to search within.
+ * @param {string} searchTerm - The term to search for.
+ * @param {Fuse.IFuseOptions<T>} [options] - Optional Fuse.js options.
+ * @returns {T[]} The search results.
+ */
+export const filterByFuzzyMatch = <T extends GenericObject>(
+  data: T[],
+  keys: (keyof T)[],
+  searchTerm: string,
+  options?: Fuse.IFuseOptions<T>
+): T[] => {
+  if (!searchTerm) {
+    return data;
+  }
+
+  const fuseOptions: Fuse.IFuseOptions<T> = {
+    keys: keys as string[],
+    threshold: 0.4, // Adjust threshold for stricter or looser matching
+    ...options,
+  };
+
+  const fuse = new Fuse(data, fuseOptions);
+  const results = fuse.search(searchTerm);
+  return results.map((result) => result.item);
+};
