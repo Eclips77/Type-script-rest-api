@@ -28,14 +28,20 @@ export const filterByExactMatch = <T extends GenericObject>(data: T[], key: keyo
  * @returns {T[]} The filtered array.
  */
 export const filterByRange = <T extends GenericObject>(data: T[], key: keyof T, range: { min?: number | Date; max?: number | Date }): T[] => {
-  let filteredData = data;
-  if (range.min !== undefined) {
-    filteredData = filteredData.filter((item) => item[key] >= range.min!);
+  const getValue = (value: any): number =>
+    value instanceof Date ? value.getTime() : value;
+
+  const min = range.min !== undefined ? getValue(range.min) : -Infinity;
+  const max = range.max !== undefined ? getValue(range.max) : Infinity;
+
+  if (min === -Infinity && max === Infinity) {
+    return data;
   }
-  if (range.max !== undefined) {
-    filteredData = filteredData.filter((item) => item[key] <= range.max!);
-  }
-  return filteredData;
+
+  return data.filter(item => {
+    const itemValue = getValue(item[key]);
+    return itemValue >= min && itemValue <= max;
+  });
 };
 
 /**
