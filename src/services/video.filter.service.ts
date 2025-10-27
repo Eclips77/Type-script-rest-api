@@ -1,88 +1,72 @@
 /**
- * @file Applies generic filtering logic specifically for the Video model using a clean, functional, and configuration-driven approach.
+ * @file Applies a hyper-efficient, predicate-based filtering logic for the Video model.
  * @module services/video.filter.service
  */
 
+import Fuse from 'fuse.js';
 import { Video } from '../schemas/video.schema';
 import { VideoFilters } from '../types/video.types';
-import {
-  filterByExactMatch,
-  filterByRange,
-  filterByArray,
-  filterByFuzzyMatch,
-} from './generic.filter.service';
 
-// Type definition for a function that takes a Video array and returns a filtered Video array.
-type VideoFilterFunction = (videos: Video[]) => Video[];
+// A Predicate is a function that returns a boolean, used for filtering.
+type Predicate = (video: Video) => boolean;
 
 /**
  * @private
- * A map of filter handlers. Each handler is a function that, when called with the query parameters,
- * returns a filter function ready to be applied to the data. This avoids code repetition
- * and makes the filtering logic clean and declarative.
+ * A map where each key is a query parameter and each value is a function
+ * that generates a predicate for that filter. This is a clean, declarative
+ * way to define filtering logic.
  */
-const filterHandlers = {
-  creator: (params: VideoFilters): VideoFilterFunction => (videos) =>
-    filterByExactMatch(videos, 'creator', params.creator),
-
-  language: (params: VideoFilters): VideoFilterFunction => (videos) =>
-    filterByExactMatch(videos, 'language', params.language),
-
-  targetAudience: (params: VideoFilters): VideoFilterFunction => (videos) =>
-    filterByArray(videos, 'targetAudience', params.targetAudience!),
-
-  duration: (params: VideoFilters): VideoFilterFunction => (videos) =>
-    filterByRange(videos, 'duration', params.minDuration, params.maxDuration),
-
-  uploadTime: (params: VideoFilters): VideoFilterFunction => (videos) =>
-    filterByRange(videos, 'uploadTime', params.startDate, params.endDate),
-
-  search: (params: VideoFilters): VideoFilterFunction => (videos) =>
-    filterByFuzzyMatch(videos, ['title', 'description'], params.search!),
-};
-
-// Maps specific query parameters to the correct handler. This is especially useful
-// for range filters where multiple query params control a single filter type.
-const queryParamToHandlerMap: Partial<Record<keyof VideoFilters, keyof typeof filterHandlers>> = {
-    creator: 'creator',
-    language: 'language',
-    targetAudience: 'targetAudience',
-    minDuration: 'duration',
-    maxDuration: 'duration',
-    startDate: 'uploadTime',
-    endDate: 'uploadTime',
-    search: 'search'
+const predicateMap: Partial<Record<keyof VideoFilters, (value: any) => Predicate>> = {
+  creator: (value: string) => (video) => video.creator === value,
+  language: (value: string) => (video) => video.language === value,
+  targetAudience: (values: string[]) => (video) => values.includes(video.targetAudience),
+  minDuration: (value: number) => (video) => video.duration >= value,
+  maxDuration: (value: number) => (video) => video.duration <= value,
+  startDate: (value: Date) => (video) => video.uploadTime >= value,
+  endDate: (value: Date) => (video) => video.uploadTime <= value,
 };
 
 /**
- * Applies all relevant filters to an array of videos based on the provided query parameters.
- * This function uses a functional approach to chain active filters together.
- * @param {Video[]} videos - The array of videos to filter.
+ * Applies all relevant filters to an array of videos with maximum efficiency.
+ * It first applies a fuzzy search to narrow down the dataset, then applies all
+ * other filters in a single iteration.
+ * @param {Video[]} videos - The initial array of videos to filter.
  * @param {VideoFilters} queryParams - The filter criteria from the query parameters.
- * @returns {Video[]} The filtered array of videos.
+ * @returns {Video[]} The final, filtered array of videos.
  */
 export const applyVideoFilters = (
   videos: Video[],
   queryParams: VideoFilters
 ): Video[] => {
-  // 1. Identify which handlers need to run based on the provided query params.
-  // Using a Set ensures that each handler is considered only once.
-  const activeHandlers = new Set<keyof typeof filterHandlers>();
-  for (const param in queryParams) {
-      const key = param as keyof VideoFilters;
-      if (queryParams[key] !== undefined && queryParamToHandlerMap[key]) {
-          activeHandlers.add(queryParamToHandlerMap[key]!);
-      }
+  let potentiallyFilteredVideos = videos;
+
+  // Step 1: Apply fuzzy search first if present, as it's the most expensive
+  // and can significantly reduce the dataset for subsequent filters.
+  if (queryParams.search) {
+    const fuse = new Fuse(videos, {
+      keys: ['title', 'description'],
+      threshold: 0.4,
+    });
+    potentiallyFilteredVideos = fuse.search(queryParams.search).map(result => result.item);
   }
 
-  // 2. Create an array of active filter functions.
-  const filterPipeline: VideoFilterFunction[] = Array.from(activeHandlers).map(handlerName =>
-    filterHandlers[handlerName](queryParams)
-  );
+  // Step 2: Build a list of active predicates from other query parameters.
+  const activePredicates: Predicate[] = [];
+  for (const key in queryParams) {
+    const paramKey = key as keyof VideoFilters;
+    if (paramKey !== 'search' && predicateMap[paramKey] && queryParams[paramKey] !== undefined) {
+      const predicateGenerator = predicateMap[paramKey]!;
+      activePredicates.push(predicateGenerator(queryParams[paramKey]));
+    }
+  }
 
-  // 3. Apply the filters sequentially using a functional reduce.
-  return filterPipeline.reduce(
-    (currentVideos, filterFunction) => filterFunction(currentVideos),
-    videos
+  // If no other filters are active, return the result from the fuzzy search (or the original list).
+  if (activePredicates.length === 0) {
+    return potentiallyFilteredVideos;
+  }
+
+  // Step 3: Filter the data ONCE using a composite predicate.
+  return potentiallyFilteredVideos.filter(video =>
+    activePredicates.every(predicate => predicate(video))
   );
 };
