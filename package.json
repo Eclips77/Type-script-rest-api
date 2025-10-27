@@ -22,6 +22,7 @@
   "homepage": "https://github.com/Eclips77/Type-script-rest-api#readme",
   "dependencies": {
     "express": "^4.19.2",
+    "fuse.js": "^7.1.0",
     "uuid": "^9.0.1",
     "zod": "^3.23.8"
   },

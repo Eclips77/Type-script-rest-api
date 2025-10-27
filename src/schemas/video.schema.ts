@@ -66,6 +66,7 @@ export const VideoFilterSchema = z.object({
   endDate: z.preprocess((arg) => {
     if (typeof arg == "string" || arg instanceof Date) return new Date(arg);
   }, z.date()).optional(),
+  search: z.string().optional(),
 });
 
 /**
