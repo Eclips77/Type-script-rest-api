@@ -6,7 +6,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Video, VideoSchema } from '../schemas/video.schema';
 import { readDatabase, writeDatabase } from '../utils/database.util';
-import { applyFilters } from './filter.service';
+import { applyVideoFilters } from './video.filter.service';
 import { NotFoundError } from '../utils/errors.util';
 import { VideoFilters } from '../types/video.types';
 import { z } from 'zod';
@@ -39,7 +39,7 @@ const getVideosWithParsedDates = async (): Promise<Video[]> => {
  */
 export const getAll = async (filters: VideoFilters): Promise<Video[]> => {
   const videos = await getVideosWithParsedDates();
-  return applyFilters(videos, filters);
+  return applyVideoFilters(videos, filters);
 };
 
 /**
