@@ -21,13 +21,12 @@ if (!MONGO_URI) {
  * @function connectDB
  * @returns {Promise<void>}
  */
-export const connectDB = async () => {
+export async function connectDB() {
   try {
     await mongoose.connect(MONGO_URI);
     console.log('MongoDB connected successfully.');
   } catch (error) {
     console.error('MongoDB connection failed:', error);
-    // Exit process with failure
     process.exit(1);
   }
-};
+}

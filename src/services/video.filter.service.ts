@@ -12,9 +12,7 @@ import { IVideoDocument } from '../models/video.model';
  * @param {VideoFilters} filters - The filter criteria from the query parameters.
  * @returns {FilterQuery<IVideoDocument>} A MongoDB query object.
  */
-export const buildMongoQuery = (
-  filters: VideoFilters
-): FilterQuery<IVideoDocument> => {
+export function buildMongoQuery(filters: VideoFilters): FilterQuery<IVideoDocument> {
   const query: FilterQuery<IVideoDocument> = {};
 
   if (filters.creator) {
@@ -60,4 +58,4 @@ export const buildMongoQuery = (
   }
 
   return query;
-};
+}

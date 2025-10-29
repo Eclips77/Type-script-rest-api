@@ -17,22 +17,12 @@ type AsyncFunction = (
 
 /**
  * Wraps an asynchronous route handler to catch any errors and pass them to the Express error handling middleware.
- * This avoids the need for try-catch blocks in every controller.
  * @function asyncHandler
  * @param {AsyncFunction} fn - The asynchronous route handler function to wrap.
  * @returns {function(Request, Response, NextFunction): void} An Express route handler.
- * @example
- * import { asyncHandler } from '../utils/asyncHandler.util';
- *
- * export const getAllVideos = asyncHandler(async (req, res) => {
- *   const videos = await videoService.getAll();
- *   res.status(200).json(videos);
- * });
  */
-export const asyncHandler = (fn: AsyncFunction) => (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+export function asyncHandler(fn: AsyncFunction) {
+  return function(req: Request, res: Response, next: NextFunction) {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+}

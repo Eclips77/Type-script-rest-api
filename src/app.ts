@@ -12,11 +12,11 @@ app.use('/api/videos', videoRoutes);
 
 app.use(errorHandler);
 
-const startServer = async () => {
+async function startServer() {
   await connectDB();
   app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
   });
-};
+}
 
 startServer();
