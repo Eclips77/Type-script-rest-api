@@ -1,7 +1,7 @@
 import express from 'express';
 import videoRoutes from './routes/video.routes';
 import { errorHandler } from './middleware/errorHandler.middleware';
-import { initDatabase } from './utils/database.util';
+import { connectDB } from './utils/db.util';
 
 const app = express();
 const port = 3000;
@@ -12,8 +12,11 @@ app.use('/api/videos', videoRoutes);
 
 app.use(errorHandler);
 
-initDatabase().then(() => {
+async function startServer() {
+  await connectDB();
   app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
   });
-});
+}
+
+startServer();

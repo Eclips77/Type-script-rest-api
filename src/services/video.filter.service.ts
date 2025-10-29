@@ -1,70 +1,61 @@
 /**
- * @file Applies generic filtering logic specifically for the Video model using a configuration-driven approach.
+ * @file Builds a MongoDB query object from video filter parameters.
  * @module services/video.filter.service
  */
 
-import { Video } from '../schemas/video.schema';
+import { FilterQuery } from 'mongoose';
 import { VideoFilters } from '../types/video.types';
-import {
-  filterByExactMatch,
-  filterByRange,
-  filterByArray,
-  filterByFuzzyMatch,
-} from './generic.filter.service';
-import { filterConfig } from './video.filter.config';
+import { IVideoDocument } from '../models/video.model';
 
 /**
- * Applies all relevant filters to an array of videos based on the provided query parameters.
- * This function dynamically applies filters by consulting the `filterConfig` map.
- * @param {Video[]} videos - The array of videos to filter.
- * @param {VideoFilters} queryParams - The filter criteria from the query parameters.
- * @returns {Video[]} The filtered array of videos.
+ * Builds a MongoDB query object based on the provided filter criteria.
+ * @param {VideoFilters} filters - The filter criteria from the query parameters.
+ * @returns {FilterQuery<IVideoDocument>} A MongoDB query object.
  */
-export const applyVideoFilters = (
-  videos: Video[],
-  queryParams: VideoFilters
-): Video[] => {
-  let filteredVideos = [...videos];
+export function buildMongoQuery(filters: VideoFilters): FilterQuery<IVideoDocument> {
+  const query: FilterQuery<IVideoDocument> = {};
 
-  for (const configKey in filterConfig) {
-    const key = configKey as keyof typeof filterConfig;
-    const config = filterConfig[key];
-
-    switch (config.type) {
-      case 'exact': {
-        const value = queryParams[key as keyof VideoFilters];
-        if (value !== undefined) {
-          filteredVideos = filterByExactMatch(filteredVideos, config.keyOrKeys as keyof Video, value);
-        }
-        break;
-      }
-      case 'range': {
-        const rangeKeys = {
-            duration: { min: queryParams.minDuration, max: queryParams.maxDuration },
-            uploadTime: { min: queryParams.startDate, max: queryParams.endDate },
-        };
-        const { min, max } = rangeKeys[key as 'duration' | 'uploadTime'];
-        if (min !== undefined || max !== undefined) {
-            filteredVideos = filterByRange(filteredVideos, config.keyOrKeys as keyof Video, min, max);
-        }
-        break;
-      }
-      case 'array': {
-        const value = queryParams[key as keyof VideoFilters];
-        if (value && Array.isArray(value)) {
-          filteredVideos = filterByArray(filteredVideos, config.keyOrKeys as keyof Video, value);
-        }
-        break;
-      }
-      case 'fuzzy': {
-        const value = queryParams.search;
-        if (value) {
-          filteredVideos = filterByFuzzyMatch(filteredVideos, config.keyOrKeys as (keyof Video)[], value);
-        }
-        break;
-      }
-    }
+  if (filters.creator) {
+    query.creator = filters.creator;
   }
 
-  return filteredVideos;
-};
+  if (filters.language) {
+    query.language = filters.language;
+  }
+
+  if (filters.targetAudience) {
+    query.targetAudience = { $in: filters.targetAudience };
+  }
+
+  const durationQuery: Record<string, number> = {};
+  if (filters.minDuration !== undefined) {
+    durationQuery.$gte = filters.minDuration;
+  }
+  if (filters.maxDuration !== undefined) {
+    durationQuery.$lte = filters.maxDuration;
+  }
+  if (Object.keys(durationQuery).length > 0) {
+    query.duration = durationQuery;
+  }
+
+  const uploadTimeQuery: Record<string, Date> = {};
+  if (filters.startDate !== undefined) {
+    uploadTimeQuery.$gte = filters.startDate;
+  }
+  if (filters.endDate !== undefined) {
+    uploadTimeQuery.$lte = filters.endDate;
+  }
+  if (Object.keys(uploadTimeQuery).length > 0) {
+    query.uploadTime = uploadTimeQuery;
+  }
+
+  if (filters.search) {
+    const searchRegex = new RegExp(filters.search, 'i'); // Case-insensitive regex
+    query.$or = [
+      { title: searchRegex },
+      { description: searchRegex },
+    ];
+  }
+
+  return query;
+}

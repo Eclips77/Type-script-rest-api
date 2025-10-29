@@ -3,9 +3,10 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-A robust and production-ready REST API for managing a video content library. This project is built with TypeScript and Express.js, featuring a JSON file-based database, powerful validation with Zod, and advanced filtering capabilities.
+A robust and production-ready REST API for managing a video content library. This project is built with TypeScript and Express.js, featuring a MongoDB database managed with Mongoose, powerful validation with Zod, and advanced filtering capabilities.
 
 ### ✨ Key Features
 
@@ -67,6 +68,7 @@ A robust and production-ready REST API for managing a video content library. Thi
 
 -   **Node.js**: `v18.x` or later.
 -   **npm**: `v9.x` or later (or yarn).
+-   **MongoDB**: A running instance of MongoDB.
 
 ---
 
@@ -85,8 +87,12 @@ Follow these steps to get the project up and running on your local machine.
     npm install
     ```
 
-3.  **Initial Database Setup:**
-    The application will automatically create the `data/videos.json` file on first run if it doesn't exist.
+3.  **Environment Setup:**
+    -   Create a `.env` file in the root of the project.
+    -   Add your MongoDB connection string to the file:
+        ```
+        MONGO_URI=mongodb://your-host:27017/your-database-name
+        ```
 
 ---
 
@@ -97,13 +103,15 @@ The project follows a modular structure to keep the code organized and maintaina
 ```
 project/
 ├── src/
+│ ├── models/
+│ │ └── video.model.ts
 │ ├── schemas/
 │ │ └── video.schema.ts
 │ ├── types/
 │ │ └── video.types.ts
 │ ├── services/
 │ │ ├── video.service.ts
-│ │ └── filter.service.ts
+│ │ └── video.filter.service.ts
 │ ├── controllers/
 │ │ └── video.controller.ts
 │ ├── routes/
@@ -112,30 +120,29 @@ project/
 │ │ ├── validation.middleware.ts
 │ │ └── errorHandler.middleware.ts
 │ ├── utils/
-│ │ ├── database.util.ts
+│ │ ├── db.util.ts
 │ │ └── errors.util.ts
 │ └── app.ts
-├── data/
-│ └── videos.json
+├── .env
 ├── tsconfig.json
 └── package.json
 ```
 
--   `src/schemas`: Contains Zod schemas for data validation.
+-   `src/models`: Contains Mongoose schemas and models for database entities.
+-   `src/schemas`: Contains Zod schemas for request data validation.
 -   `src/types`: Holds shared TypeScript types and interfaces.
 -   `src/services`: Business logic and data manipulation.
 -   `src/controllers`: Handles incoming requests and sends responses.
 -   `src/routes`: Defines the API endpoints and connects them to controllers.
 -   `src/middleware`: Custom middleware for validation and error handling.
--   `src/utils`: Utility functions for database interaction and error classes.
--   `data/`: Stores the `videos.json` database file.
+-   `src/utils`: Utility functions for database connection and error classes.
 
 ---
 
 ## ⚙️ Configuration
 
 -   **Port**: The application runs on port `3000` by default, as defined in `src/app.ts`.
--   **Database**: The JSON database is located at `data/videos.json`.
+-   **Database**: The MongoDB connection string is configured in the `.env` file.
 
 ---
 

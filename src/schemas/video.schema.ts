@@ -19,7 +19,7 @@ import { z } from 'zod';
  * @constant {z.ZodObject} VideoSchema
  */
 export const VideoSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   title: z.string(),
   creator: z.string(),
   duration: z.number(),

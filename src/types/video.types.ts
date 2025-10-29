@@ -8,6 +8,7 @@ export interface VideoFilters {
   maxDuration?: number;
   startDate?: Date;
   endDate?: Date;
+  search?: string;
 }
 
 export interface PaginationParams {
