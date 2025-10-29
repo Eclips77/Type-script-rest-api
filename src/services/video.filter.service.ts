@@ -1,51 +1,63 @@
 /**
- * @file Applies generic filtering logic to the Video model using a clean, map-driven architecture.
+ * @file Builds a MongoDB query object from video filter parameters.
  * @module services/video.filter.service
  */
 
-import { Video } from '../schemas/video.schema';
+import { FilterQuery } from 'mongoose';
 import { VideoFilters } from '../types/video.types';
-import { filterFunctionMap, queryParamToFieldMap } from '../config/video.filter.config';
+import { IVideoDocument } from '../models/video.model';
 
 /**
- * Applies all relevant filters to an array of videos using a concise and efficient pipeline.
- * @param {Video[]} videos - The array of videos to filter.
- * @param {VideoFilters} queryParams - The filter criteria from the query parameters.
- * @returns {Video[]} The filtered array of videos.
+ * Builds a MongoDB query object based on the provided filter criteria.
+ * @param {VideoFilters} filters - The filter criteria from the query parameters.
+ * @returns {FilterQuery<IVideoDocument>} A MongoDB query object.
  */
-export const applyVideoFilters = (
-  videos: Video[],
-  queryParams: VideoFilters
-): Video[] => {
-  const processedRangeFields = new Set<string>();
+export const buildMongoQuery = (
+  filters: VideoFilters
+): FilterQuery<IVideoDocument> => {
+  const query: FilterQuery<IVideoDocument> = {};
 
-  return Object.entries(queryParams).reduce((currentVideos, [param, value]) => {
-    if (value === undefined || value === null) {
-      return currentVideos;
-    }
+  if (filters.creator) {
+    query.creator = filters.creator;
+  }
 
-    const field = queryParamToFieldMap[param as keyof VideoFilters];
-    if (!field) {
-      return currentVideos;
-    }
+  if (filters.language) {
+    query.language = filters.language;
+  }
 
-    const filterFn = filterFunctionMap[field];
+  if (filters.targetAudience) {
+    query.targetAudience = { $in: filters.targetAudience };
+  }
 
-    if (field === 'duration' || field === 'uploadTime') {
-      if (processedRangeFields.has(field)) {
-        return currentVideos; // Already processed this range field
-      }
-      processedRangeFields.add(field);
-      const range = (field === 'duration')
-        ? { min: queryParams.minDuration, max: queryParams.maxDuration }
-        : { min: queryParams.startDate, max: queryParams.endDate };
-      return filterFn(currentVideos, field, range);
-    }
+  const durationQuery: Record<string, number> = {};
+  if (filters.minDuration !== undefined) {
+    durationQuery.$gte = filters.minDuration;
+  }
+  if (filters.maxDuration !== undefined) {
+    durationQuery.$lte = filters.maxDuration;
+  }
+  if (Object.keys(durationQuery).length > 0) {
+    query.duration = durationQuery;
+  }
 
-    if (field === 'search') {
-      return filterFn(currentVideos, ['title', 'description'], value as string);
-    }
+  const uploadTimeQuery: Record<string, Date> = {};
+  if (filters.startDate !== undefined) {
+    uploadTimeQuery.$gte = filters.startDate;
+  }
+  if (filters.endDate !== undefined) {
+    uploadTimeQuery.$lte = filters.endDate;
+  }
+  if (Object.keys(uploadTimeQuery).length > 0) {
+    query.uploadTime = uploadTimeQuery;
+  }
 
-    return filterFn(currentVideos, field, value);
-  }, videos);
+  if (filters.search) {
+    const searchRegex = new RegExp(filters.search, 'i'); // Case-insensitive regex
+    query.$or = [
+      { title: searchRegex },
+      { description: searchRegex },
+    ];
+  }
+
+  return query;
 };

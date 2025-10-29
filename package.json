@@ -21,9 +21,10 @@
   },
   "homepage": "https://github.com/Eclips77/Type-script-rest-api#readme",
   "dependencies": {
+    "dotenv": "^17.2.3",
     "express": "^4.19.2",
     "fuse.js": "^7.1.0",
-    "uuid": "^9.0.1",
+    "mongoose": "^8.19.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {
