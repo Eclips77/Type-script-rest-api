@@ -3,19 +3,16 @@
  * @module middleware/errorHandler.middleware
  */
 
-import { Request, Response, NextFunction } from 'express';
-import { AppError, ValidationError } from '../utils/errors.util';
+import { AppError, ValidationError } from '../utils/errors.util.js';
 
 /**
  * Express middleware to handle all application errors.
- * It formats the error response based on the error type.
- * @function errorHandler
- * @param {Error} err - The error object.
- * @param {Request} req - The Express request object.
- * @param {Response} res - The Express response object.
- * @param {NextFunction} next - The Express next middleware function.
+ * @param {Error} err
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
  */
-export function errorHandler(err: Error, req: Request, res: Response, next: NextFunction) {
+export function errorHandler(err, req, res, next) {
   if (err instanceof AppError) {
     if (err instanceof ValidationError) {
       return res.status(err.statusCode).json({
