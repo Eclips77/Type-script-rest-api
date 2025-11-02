@@ -11,59 +11,82 @@ import {
   remove,
   addVideo,
 } from '../services/playlist.service.js';
-import { asyncHandler } from '../utils/asyncHandler.util.js';
 
-function getAllPlaylistsHandler(req, res) {
+export function getAllPlaylists(req, res) {
   getAll(req.query)
     .then(playlists => {
       res.status(200).json(playlists);
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
     });
 }
 
-function getPlaylistByIdHandler(req, res, next) {
+export function getPlaylistById(req, res) {
   getById(req.params.id)
     .then(playlist => {
       res.status(200).json(playlist);
     })
-    .catch(next);
-}
-
-function createPlaylistHandler(req, res) {
-  create(req.body)
-    .then(newPlaylist => {
-      res.status(201).json(newPlaylist);
+    .catch(error => {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
     });
 }
 
-function updatePlaylistHandler(req, res, next) {
+export function createPlaylist(req, res) {
+  create(req.body)
+    .then(newPlaylist => {
+      res.status(201).json(newPlaylist);
+    })
+    .catch(error => {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    });
+}
+
+export function updatePlaylist(req, res) {
   update(req.params.id, req.body)
     .then(updatedPlaylist => {
       res.status(200).json(updatedPlaylist);
     })
-    .catch(next);
+    .catch(error => {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    });
 }
 
-function deletePlaylistHandler(req, res, next) {
+export function deletePlaylist(req, res) {
   remove(req.params.id)
     .then(() => {
       res.status(204).send();
     })
-    .catch(next);
+    .catch(error => {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: error.message });
+      }
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    });
 }
 
-function addVideoToPlaylistHandler(req, res, next) {
+export function addVideoToPlaylist(req, res) {
     const { playlistId, videoId } = req.params;
     addVideo(playlistId, videoId)
         .then(playlist => {
             res.status(200).json(playlist);
         })
-        .catch(next);
+        .catch(error => {
+            if (error.message.includes('not found')) {
+                return res.status(404).json({ message: error.message });
+            }
+            console.error(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        });
 }
-
-
-export const getAllPlaylists = asyncHandler(getAllPlaylistsHandler);
-export const getPlaylistById = asyncHandler(getPlaylistByIdHandler);
-export const createPlaylist = asyncHandler(createPlaylistHandler);
-export const updatePlaylist = asyncHandler(updatePlaylistHandler);
-export const deletePlaylist = asyncHandler(deletePlaylistHandler);
-export const addVideoToPlaylist = asyncHandler(addVideoToPlaylistHandler);

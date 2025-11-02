@@ -4,7 +4,6 @@
  */
 
 import { ZodError } from 'zod';
-import { ValidationError } from '../utils/errors.util.js';
 
 /**
  * Creates an Express middleware to validate the request body against a Zod schema.
@@ -18,10 +17,12 @@ export function validate(schema) {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        next(new ValidationError(error.errors));
-      } else {
-        next(error);
+        return res.status(400).json({
+          message: 'Validation Error',
+          errors: error.errors,
+        });
       }
+      next(error);
     }
   };
 }
@@ -38,10 +39,12 @@ export function validateQuery(schema) {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        next(new ValidationError(error.errors));
-      } else {
-        next(error);
+        return res.status(400).json({
+            message: 'Validation Error',
+            errors: error.errors,
+        });
       }
+      next(error);
     }
   };
 }
