@@ -7,6 +7,25 @@ import { v4 as uuidv4 } from 'uuid';
 import { readDatabase, writeDatabase } from '../utils/database.util.js';
 
 const PLAYLIST_DB_FILE = 'playlists.json';
+const GENRE_DB_FILE = 'genres.json';
+
+/**
+ * Validates that all provided genres exist in the database.
+ * @param {string[]} genresToValidate
+ * @returns {Promise<void>}
+ */
+function validateGenres(genresToValidate) {
+    if (!genresToValidate || genresToValidate.length === 0) {
+        return Promise.resolve();
+    }
+    return readDatabase(GENRE_DB_FILE).then(existingGenres => {
+        const existingGenreNames = existingGenres.map(g => g.name);
+        const allFound = genresToValidate.every(g => existingGenreNames.includes(g));
+        if (!allFound) {
+            return Promise.reject(new Error('One or more genres are invalid'));
+        }
+    });
+}
 
 export function getAll(filters) {
   return readDatabase(PLAYLIST_DB_FILE)
@@ -31,7 +50,8 @@ export function getById(id) {
 }
 
 export function create(playlistData) {
-  return readDatabase(PLAYLIST_DB_FILE)
+  return validateGenres(playlistData.genres)
+    .then(() => readDatabase(PLAYLIST_DB_FILE))
     .then(playlists => {
       const newPlaylist = {
         id: uuidv4(),
@@ -45,17 +65,18 @@ export function create(playlistData) {
 }
 
 export function update(id, playlistData) {
-  return readDatabase(PLAYLIST_DB_FILE)
-    .then(playlists => {
-      const index = playlists.findIndex(p => p.id === id);
-      if (index === -1) {
-        return Promise.reject(new Error('Playlist not found'));
-      }
-      const updatedPlaylist = { ...playlists[index], ...playlistData };
-      playlists[index] = updatedPlaylist;
-      return writeDatabase(PLAYLIST_DB_FILE, playlists)
-        .then(() => updatedPlaylist);
-    });
+    return validateGenres(playlistData.genres)
+        .then(() => readDatabase(PLAYLIST_DB_FILE))
+        .then(playlists => {
+            const index = playlists.findIndex(p => p.id === id);
+            if (index === -1) {
+                return Promise.reject(new Error('Playlist not found'));
+            }
+            const updatedPlaylist = { ...playlists[index], ...playlistData };
+            playlists[index] = updatedPlaylist;
+            return writeDatabase(PLAYLIST_DB_FILE, playlists)
+                .then(() => updatedPlaylist);
+        });
 }
 
 export function remove(id) {

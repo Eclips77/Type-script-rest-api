@@ -5,16 +5,11 @@
 
 import { z } from 'zod';
 
-export const genres = [
-    'Comedy', 'Horror', 'Action', 'Animation',
-    'Drama', 'Sci-Fi', 'Documentary', 'Thriller'
-];
-
 export const PlaylistSchema = z.object({
   id: z.string(),
   name: z.string(),
   videoIds: z.array(z.string()),
-  genres: z.array(z.enum(genres)),
+  genres: z.array(z.string()), // Changed from enum to string array
 });
 
 export const PlaylistUpdateSchema = PlaylistSchema.partial();

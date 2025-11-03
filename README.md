@@ -126,3 +126,13 @@ project/
 | `PUT`    | `/:id`                     | Update an existing playlist.       |
 | `DELETE` | `/:id`                     | Delete a playlist by its ID.       |
 | `PATCH`  | `/:playlistId/videos/:videoId` | Add a video to a playlist.         |
+
+### Genre API Endpoints (`/api/genres`)
+
+| Method   | Path   | Description                   |
+| :------- | :----- | :---------------------------- |
+| `GET`    | `/`    | Get all available genres.     |
+| `GET`    | `/:id` | Get a single genre by its ID. |
+| `POST`   | `/`    | Create a new genre.           |
+| `PUT`    | `/:id` | Update an existing genre.     |
+| `DELETE` | `/:id` | Delete a genre by its ID.     |
