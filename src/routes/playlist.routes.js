@@ -11,16 +11,18 @@ import { z } from 'zod';
 
 const router = Router();
 
-// Validation for genre is now handled dynamically in the service layer
 const PlaylistFilterSchema = z.object({
     genre: z.string().optional(),
 });
 
 router.get('/', validateQuery(PlaylistFilterSchema), playlistController.getAllPlaylists);
 router.get('/:id', playlistController.getPlaylistById);
-router.post('/', validate(PlaylistSchema.omit({ id: true, videoIds: true })), playlistController.createPlaylist);
+router.post('/', validate(PlaylistSchema.omit({ id: true })), playlistController.createPlaylist);
 router.put('/:id', validate(PlaylistUpdateSchema), playlistController.updatePlaylist);
 router.delete('/:id', playlistController.deletePlaylist);
-router.patch('/:playlistId/videos/:videoId', playlistController.addVideoToPlaylist);
+
+// New, explicit routes for managing videos in a playlist
+router.post('/:id/videos', playlistController.addVideoToPlaylist);
+router.delete('/:id/videos/:videoId', playlistController.removeVideoFromPlaylist);
 
 export default router;

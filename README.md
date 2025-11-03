@@ -125,7 +125,8 @@ project/
 | `POST`   | `/`                        | Create a new playlist.             |
 | `PUT`    | `/:id`                     | Update an existing playlist.       |
 | `DELETE` | `/:id`                     | Delete a playlist by its ID.       |
-| `PATCH`  | `/:playlistId/videos/:videoId` | Add a video to a playlist.         |
+| `POST`   | `/:id/videos`              | Add a video to a playlist.         |
+| `DELETE` | `/:id/videos/:videoId`     | Remove a video from a playlist.    |
 
 ### Genre API Endpoints (`/api/genres`)
 

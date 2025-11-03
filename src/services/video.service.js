@@ -15,6 +15,7 @@ export class NotFoundError extends Error {
 }
 
 const VIDEO_DB_FILE = 'videos.json';
+const PLAYLIST_DB_FILE = 'playlists.json';
 
 export function getAll(filters) {
   return readDatabase(VIDEO_DB_FILE)
@@ -69,7 +70,24 @@ export function remove(id) {
       if (index === -1) {
         throw new NotFoundError('Video not found');
       }
+      // Remove the video
       videos.splice(index, 1);
       return writeDatabase(VIDEO_DB_FILE, videos);
+    })
+    .then(() => readDatabase(PLAYLIST_DB_FILE))
+    .then(playlists => {
+      // Remove the deleted video's ID from all playlists
+      let wasModified = false;
+      playlists.forEach(playlist => {
+        const videoIndex = playlist.videoIds.indexOf(id);
+        if (videoIndex !== -1) {
+          playlist.videoIds.splice(videoIndex, 1);
+          wasModified = true;
+        }
+      });
+
+      if (wasModified) {
+        return writeDatabase(PLAYLIST_DB_FILE, playlists);
+      }
     });
 }

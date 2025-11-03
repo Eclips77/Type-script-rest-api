@@ -37,9 +37,12 @@ export function createPlaylist(req, res) {
       res.status(201).json(newPlaylist);
     })
     .catch(error => {
-        if (error instanceof ValidationError) {
-            return res.status(400).json({ message: error.message });
-        }
+      if (error instanceof ValidationError) {
+        return res.status(400).json({ message: error.message });
+      }
+      if (error instanceof NotFoundError) { // For videoId validation
+        return res.status(404).json({ message: error.message });
+      }
       console.error(error);
       res.status(500).json({ message: 'Internal Server Error' });
     });
@@ -77,8 +80,27 @@ export function deletePlaylist(req, res) {
 }
 
 export function addVideoToPlaylist(req, res) {
-    const { playlistId, videoId } = req.params;
-    playlistService.addVideo(playlistId, videoId)
+    const { id } = req.params;
+    const { videoId } = req.body; // Expecting videoId in the body
+    if (!videoId) {
+        return res.status(400).json({ message: 'videoId is required' });
+    }
+    playlistService.addVideoToPlaylist(id, videoId)
+        .then(playlist => {
+            res.status(200).json(playlist);
+        })
+        .catch(error => {
+            if (error instanceof NotFoundError) {
+                return res.status(404).json({ message: error.message });
+            }
+            console.error(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        });
+}
+
+export function removeVideoFromPlaylist(req, res) {
+    const { id, videoId } = req.params;
+    playlistService.removeVideoFromPlaylist(id, videoId)
         .then(playlist => {
             res.status(200).json(playlist);
         })
