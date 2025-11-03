@@ -3,16 +3,11 @@
  * @module controllers/video.controller
  */
 
-import {
-  getAll,
-  getById,
-  create,
-  update,
-  remove,
-} from '../services/video.service.js';
+import { videoService } from '../services/index.js';
+import { NotFoundError } from '../services/video.service.js';
 
 export function getAllVideos(req, res) {
-  getAll(req.query)
+  videoService.getAll(req.query)
     .then(videos => {
       res.status(200).json(videos);
     })
@@ -23,12 +18,12 @@ export function getAllVideos(req, res) {
 }
 
 export function getVideoById(req, res) {
-  getById(req.params.id)
+  videoService.getById(req.params.id)
     .then(video => {
       res.status(200).json(video);
     })
     .catch(error => {
-      if (error.message.includes('not found')) {
+      if (error instanceof NotFoundError) {
         return res.status(404).json({ message: error.message });
       }
       console.error(error);
@@ -37,7 +32,7 @@ export function getVideoById(req, res) {
 }
 
 export function createVideo(req, res) {
-  create(req.body)
+  videoService.create(req.body)
     .then(newVideo => {
       res.status(201).json(newVideo);
     })
@@ -48,12 +43,12 @@ export function createVideo(req, res) {
 }
 
 export function updateVideo(req, res) {
-  update(req.params.id, req.body)
+  videoService.update(req.params.id, req.body)
     .then(updatedVideo => {
       res.status(200).json(updatedVideo);
     })
     .catch(error => {
-      if (error.message.includes('not found')) {
+      if (error instanceof NotFoundError) {
         return res.status(404).json({ message: error.message });
       }
       console.error(error);
@@ -62,12 +57,12 @@ export function updateVideo(req, res) {
 }
 
 export function deleteVideo(req, res) {
-  remove(req.params.id)
+  videoService.remove(req.params.id)
     .then(() => {
       res.status(204).send();
     })
     .catch(error => {
-      if (error.message.includes('not found')) {
+      if (error instanceof NotFoundError) {
         return res.status(404).json({ message: error.message });
       }
       console.error(error);

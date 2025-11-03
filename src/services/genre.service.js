@@ -4,8 +4,14 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { readDatabase, writeDatabase } from '../utils/database.util.js';
-import { NotFoundError } from '../utils/errors.util.js';
+import { readDatabase, writeDatabase } from '../utils/index.js';
+
+export class NotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'NotFoundError';
+    }
+}
 
 const GENRE_DB_FILE = 'genres.json';
 
@@ -18,7 +24,7 @@ export function getById(id) {
     .then(genres => {
       const genre = genres.find(g => g.id === id);
       if (!genre) {
-        return Promise.reject(new Error('Genre not found'));
+        throw new NotFoundError('Genre not found');
       }
       return genre;
     });
@@ -42,7 +48,7 @@ export function update(id, genreData) {
     .then(genres => {
       const index = genres.findIndex(g => g.id === id);
       if (index === -1) {
-        return Promise.reject(new Error('Genre not found'));
+        throw new NotFoundError('Genre not found');
       }
       const updatedGenre = { ...genres[index], ...genreData };
       genres[index] = updatedGenre;
@@ -56,7 +62,7 @@ export function remove(id) {
     .then(genres => {
       const index = genres.findIndex(g => g.id === id);
       if (index === -1) {
-        return Promise.reject(new Error('Genre not found'));
+        throw new NotFoundError('Genre not found');
       }
       genres.splice(index, 1);
       return writeDatabase(GENRE_DB_FILE, genres);

@@ -4,16 +4,26 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { readDatabase, writeDatabase } from '../utils/database.util.js';
+import { readDatabase, writeDatabase } from '../utils/index.js';
+
+export class NotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'NotFoundError';
+    }
+}
+
+export class ValidationError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'ValidationError';
+    }
+}
+
 
 const PLAYLIST_DB_FILE = 'playlists.json';
 const GENRE_DB_FILE = 'genres.json';
 
-/**
- * Validates that all provided genres exist in the database.
- * @param {string[]} genresToValidate
- * @returns {Promise<void>}
- */
 function validateGenres(genresToValidate) {
     if (!genresToValidate || genresToValidate.length === 0) {
         return Promise.resolve();
@@ -22,7 +32,7 @@ function validateGenres(genresToValidate) {
         const existingGenreNames = existingGenres.map(g => g.name);
         const allFound = genresToValidate.every(g => existingGenreNames.includes(g));
         if (!allFound) {
-            return Promise.reject(new Error('One or more genres are invalid'));
+            throw new ValidationError('One or more genres are invalid');
         }
     });
 }
@@ -43,7 +53,7 @@ export function getById(id) {
     .then(playlists => {
       const playlist = playlists.find(p => p.id === id);
       if (!playlist) {
-        return Promise.reject(new Error('Playlist not found'));
+        throw new NotFoundError('Playlist not found');
       }
       return playlist;
     });
@@ -70,7 +80,7 @@ export function update(id, playlistData) {
         .then(playlists => {
             const index = playlists.findIndex(p => p.id === id);
             if (index === -1) {
-                return Promise.reject(new Error('Playlist not found'));
+                throw new NotFoundError('Playlist not found');
             }
             const updatedPlaylist = { ...playlists[index], ...playlistData };
             playlists[index] = updatedPlaylist;
@@ -84,7 +94,7 @@ export function remove(id) {
     .then(playlists => {
       const index = playlists.findIndex(p => p.id === id);
       if (index === -1) {
-        return Promise.reject(new Error('Playlist not found'));
+        throw new NotFoundError('Playlist not found');
       }
       playlists.splice(index, 1);
       return writeDatabase(PLAYLIST_DB_FILE, playlists);
@@ -96,7 +106,7 @@ export function addVideo(playlistId, videoId) {
         .then(playlists => {
             const index = playlists.findIndex(p => p.id === playlistId);
             if (index === -1) {
-                return Promise.reject(new Error('Playlist not found'));
+                throw new NotFoundError('Playlist not found');
             }
             if (!playlists[index].videoIds.includes(videoId)) {
                 playlists[index].videoIds.push(videoId);

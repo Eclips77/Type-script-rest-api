@@ -1,8 +1,6 @@
 import express from 'express';
-import videoRoutes from './routes/video.routes.js';
-import playlistRoutes from './routes/playlist.routes.js';
-import genreRoutes from './routes/genre.routes.js';
-import { initDatabase } from './utils/database.util.js';
+import { videoRoutes, playlistRoutes, genreRoutes } from './routes/index.js';
+import { initDatabase } from './utils/index.js';
 
 const app = express();
 const port = 3000;

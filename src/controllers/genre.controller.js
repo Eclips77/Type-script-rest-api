@@ -3,16 +3,11 @@
  * @module controllers/genre.controller
  */
 
-import {
-  getAll,
-  getById,
-  create,
-  update,
-  remove,
-} from '../services/genre.service.js';
+import { genreService } from '../services/index.js';
+import { NotFoundError } from '../services/genre.service.js';
 
 export function getAllGenres(req, res) {
-  getAll()
+  genreService.getAll()
     .then(genres => {
       res.status(200).json(genres);
     })
@@ -23,12 +18,12 @@ export function getAllGenres(req, res) {
 }
 
 export function getGenreById(req, res) {
-  getById(req.params.id)
+  genreService.getById(req.params.id)
     .then(genre => {
       res.status(200).json(genre);
     })
     .catch(error => {
-      if (error.message.includes('not found')) {
+      if (error instanceof NotFoundError) {
         return res.status(404).json({ message: error.message });
       }
       console.error(error);
@@ -37,7 +32,7 @@ export function getGenreById(req, res) {
 }
 
 export function createGenre(req, res) {
-  create(req.body)
+  genreService.create(req.body)
     .then(newGenre => {
       res.status(201).json(newGenre);
     })
@@ -48,12 +43,12 @@ export function createGenre(req, res) {
 }
 
 export function updateGenre(req, res) {
-  update(req.params.id, req.body)
+  genreService.update(req.params.id, req.body)
     .then(updatedGenre => {
       res.status(200).json(updatedGenre);
     })
     .catch(error => {
-      if (error.message.includes('not found')) {
+      if (error instanceof NotFoundError) {
         return res.status(404).json({ message: error.message });
       }
       console.error(error);
@@ -62,12 +57,12 @@ export function updateGenre(req, res) {
 }
 
 export function deleteGenre(req, res) {
-  remove(req.params.id)
+  genreService.remove(req.params.id)
     .then(() => {
       res.status(204).send();
     })
     .catch(error => {
-      if (error.message.includes('not found')) {
+      if (error instanceof NotFoundError) {
         return res.status(404).json({ message: error.message });
       }
       console.error(error);

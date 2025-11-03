@@ -4,8 +4,15 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { readDatabase, writeDatabase } from '../utils/database.util.js';
+import { readDatabase, writeDatabase } from '../utils/index.js';
 import { applyVideoFilters } from './video.filter.service.js';
+
+export class NotFoundError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'NotFoundError';
+    }
+}
 
 const VIDEO_DB_FILE = 'videos.json';
 
@@ -21,7 +28,7 @@ export function getById(id) {
     .then(videos => {
       const video = videos.find(v => v.id === id);
       if (!video) {
-        return Promise.reject(new Error('Video not found'));
+        throw new NotFoundError('Video not found');
       }
       return video;
     });
@@ -46,7 +53,7 @@ export function update(id, videoData) {
     .then(videos => {
       const index = videos.findIndex(v => v.id === id);
       if (index === -1) {
-        return Promise.reject(new Error('Video not found'));
+        throw new NotFoundError('Video not found');
       }
       const updatedVideo = { ...videos[index], ...videoData };
       videos[index] = updatedVideo;
@@ -60,7 +67,7 @@ export function remove(id) {
     .then(videos => {
       const index = videos.findIndex(v => v.id === id);
       if (index === -1) {
-        return Promise.reject(new Error('Video not found'));
+        throw new NotFoundError('Video not found');
       }
       videos.splice(index, 1);
       return writeDatabase(VIDEO_DB_FILE, videos);

@@ -4,15 +4,9 @@
  */
 
 import { Router } from 'express';
-import {
-  getAllVideos,
-  getVideoById,
-  createVideo,
-  updateVideo,
-  deleteVideo,
-} from '../controllers/video.controller.js';
-import { validate, validateQuery } from '../middleware/validation.middleware.js';
-import { VideoSchema, VideoUpdateSchema } from '../schemas/video.schema.js';
+import { videoController } from '../controllers/index.js';
+import { validate, validateQuery } from '../middleware/index.js';
+import { VideoSchema, VideoUpdateSchema } from '../schemas/index.js';
 import { z } from 'zod';
 
 const router = Router();
@@ -29,10 +23,10 @@ const VideoFilterSchema = z.object({
     search: z.string().optional(),
 });
 
-router.get('/', validateQuery(VideoFilterSchema), getAllVideos);
-router.get('/:id', getVideoById);
-router.post('/', validate(VideoSchema.omit({ id: true, uploadTime: true })), createVideo);
-router.put('/:id', validate(VideoUpdateSchema), updateVideo);
-router.delete('/:id', deleteVideo);
+router.get('/', validateQuery(VideoFilterSchema), videoController.getAllVideos);
+router.get('/:id', videoController.getVideoById);
+router.post('/', validate(VideoSchema.omit({ id: true, uploadTime: true })), videoController.createVideo);
+router.put('/:id', validate(VideoUpdateSchema), videoController.updateVideo);
+router.delete('/:id', videoController.deleteVideo);
 
 export default router;

@@ -4,22 +4,16 @@
  */
 
 import { Router } from 'express';
-import {
-  getAllGenres,
-  getGenreById,
-  createGenre,
-  updateGenre,
-  deleteGenre,
-} from '../controllers/genre.controller.js';
-import { validate } from '../middleware/validation.middleware.js';
-import { GenreSchema, GenreUpdateSchema } from '../schemas/genre.schema.js';
+import { genreController } from '../controllers/index.js';
+import { validate } from '../middleware/index.js';
+import { GenreSchema, GenreUpdateSchema } from '../schemas/index.js';
 
 const router = Router();
 
-router.get('/', getAllGenres);
-router.get('/:id', getGenreById);
-router.post('/', validate(GenreSchema.omit({ id: true })), createGenre);
-router.put('/:id', validate(GenreUpdateSchema), updateGenre);
-router.delete('/:id', deleteGenre);
+router.get('/', genreController.getAllGenres);
+router.get('/:id', genreController.getGenreById);
+router.post('/', validate(GenreSchema.omit({ id: true })), genreController.createGenre);
+router.put('/:id', validate(GenreUpdateSchema), genreController.updateGenre);
+router.delete('/:id', genreController.deleteGenre);
 
 export default router;
